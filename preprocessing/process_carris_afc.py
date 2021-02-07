@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import pandas as pd
 from rich import print
-
+from odx import config
 
 carris_col_mapping = {
     "timestamp": "Data/Hora",
@@ -136,11 +136,11 @@ def process_carris_afc(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process CARRIS AFC")
     parser.add_argument("path", type=str, nargs=1, help="input (raw) afc path")
-    parser.add_argument("-o", "--output", help="output path", default=None)
+    parser.add_argument("-o", "--output", help="output path", default=config.PROCESSED_BUS_AFC_PATH)
 
     args = parser.parse_args()
     input_path = args.path[0]
     output_path = args.output
 
-    print("[red]Assuming data is from October 2019[/red], which has the last row corrupted.\nIf this is not the case, remove the 'nrows' argument from the call to 'process_carris_afc'\n")
+    print("[red]Assuming data is from October 2019, which has the last row corrupted.\nIf this is not the case, remove the 'nrows' argument from the call to 'process_carris_afc'\n")
     process_carris_afc(input_path, carris_col_mapping, output_path=output_path, nrows=6282065)

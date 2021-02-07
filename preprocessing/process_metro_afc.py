@@ -78,7 +78,7 @@ def process_metro_afc(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process METRO AFC")
     parser.add_argument("path", type=str, nargs=1, help="input (raw) afc path")
-    parser.add_argument("-o", "--output", help="output path", default=None)
+    parser.add_argument("-o", "--output", help="output path", default=config.PROCESSED_METRO_AFC_PATH)
 
     args = parser.parse_args()
     input_path = args.path[0]
