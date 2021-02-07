@@ -1,0 +1,6 @@
+pyarrow
+pandas
+numpy
+tqdm
+rich
+loguru
