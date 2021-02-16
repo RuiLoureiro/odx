@@ -6,6 +6,7 @@ from .bus_schedule import BusSchedule, BusRouteTuple
 from .metro_schedule import MetroSchedule
 from .config import ODXConfig
 from .geo import StopsDistance
+from .utils import ddict2dict
 
 
 class ODX_ENUMS:
@@ -124,7 +125,8 @@ class ODX:
                                 stage = MetroStage(
                                     transaction, next_transaction
                                 )
-                                # since we already processed the next transaction, skip it
+                                # since we already processed
+                                # the next transaction, skip it
                                 next(iter_)
                             else:
                                 stage = MetroStage(transaction, None)
@@ -140,5 +142,113 @@ class ODX:
                         continue
 
                     stages[cid][date].append(stage)
+
+        return stages
+
+    def add_report(self, message, stage):
+        pass
+
+    def get_closest_stop(self, stage, next_stage):
+        route_stops = self.bus_schedule.get_route_stops(stage.route)
+
+        try:
+            stop_number = route_stops.index(stage.stop.stop_id)
+
+        except ValueError:
+            raise RuntimeError(
+                f"Stop {stage.stop.stop_id} not in route {stage.route}"
+            )
+
+        # get stop_ids in the trip, after previous transaction's stop.
+        # if the route is circular, every stop is subsequent to the current one
+        if stage.route.route_direction == "CIRC":
+            subsequent_stop_ids = (
+                route_stops[stop_number + 1 :] + route_stops[:stop_number]
+            )
+
+        else:
+            subsequent_stop_ids = route_stops[stop_number + 1 :]
+
+        if not subsequent_stop_ids:
+            raise RuntimeError(
+                f"Boarding stop ({stage.stop.stop_id}) is route's last stop"
+            )
+
+        # direct (same stop) transfer
+        if next_stage.entry_stop.stop_id in subsequent_stop_ids:
+            closest_sid = next_stage.entry_stop.stop_id
+
+        else:
+            distances = {}
+            for sid in subsequent_stop_ids:
+                distances[sid] = self.bus_schedule.get_stops_distance(
+                    sid, next_stage.entry_stop.stop_id
+                )
+
+            closest_sid = min(distances, key=distances.get)
+
+        return self.bus_schedule.get_stop(closest_sid)
+
+    def get_stops_distance(self, sid1, sid2):
+        return self.stop_distances.get_distance(sid1, sid2)
+
+    @staticmethod
+    def is_boarding_last_stop(stage):
+        return (
+            stage.route.route_direction != "CIRC"
+            and stage.entry_stop.stop_id == stage.route.route_stop_ids[-1]
+        )
+
+    @staticmethod
+    def get_stage_time(stage):
+        stage_time_sec = stage.route.get_stage_time(
+            stage.entry_stop.stop_id,
+            stage.exit_stop.stop_id,
+        )
+
+        return datetime.timedelta(seconds=stage_time_sec)
+
+    def infer_destinations(self, stages):
+        for cid in tqdm(stages):
+            for date in stages[cid]:
+                day_stages = stages[cid][date]
+
+                # check if only one stage in day
+                if len(day_stages) == 1:
+                    continue
+
+                for idx, stage in enumerate(day_stages):
+                    if stage.mode != ODX_ENUMS.BUS:
+                        continue
+
+                    if not (stage.entry_stop and stage.route):
+                        continue
+                    # check if boarding is on route's last stop
+                    if self.is_boarding_last_stop(stage):
+                        continue
+
+                    try:
+                        next_stage = day_stages[idx + 1]
+                    except IndexError:
+                        next_stage = day_stages[0]
+
+                    if not next_stage.entry_stop:
+                        continue
+
+                    closest_stop = self.get_closest_stop(stage, next_stage)
+
+                    if (
+                        self.get_stops_distance(
+                            closest_stop.stop_id,
+                            next_stage.entry_stop.stop_id,
+                        )
+                        > ODXConfig.MAX_BUS_ALIGTHING_BOARDING_DISTANCE
+                    ):
+                        continue
+
+                    stage.exit_stop = closest_stop
+                    stage.exit_ts = stage.entry_ts + self.get_stage_time(
+                        stage
+                    )
 
         return stages

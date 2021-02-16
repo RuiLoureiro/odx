@@ -32,3 +32,4 @@ PROCESSED_METRO_AFC_PATH = f"{PROCESSED_DATA_PATH}/afc_metro_10_2019.feather"
 # ODX
 class ODXConfig:
     NEW_DAY_TIME = datetime.datetime.time(4, 0, 0)
+    MAX_BUS_ALIGTHING_BOARDING_DISTANCE = 0.75  # km
