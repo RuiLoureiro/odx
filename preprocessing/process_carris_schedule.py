@@ -46,7 +46,9 @@ def process_carris_excel(path, output_dir):
             ]
         ]
         if len(stop_df.drop_duplicates()) > 1:
-            print(f"[red]Stop {sid} has more multiple entries, using first appearance")
+            print(
+                f"[red]Stop {sid} has more multiple entries, using first appearance"
+            )
 
         row = stop_df.iloc[0]
 
@@ -76,16 +78,18 @@ def process_carris_excel(path, output_dir):
         route_variant = row[RawColumnNames.route_variant]
         direction = row[RawColumnNames.route_direction]
 
-        if direction == 'A':
+        if direction == "A":
             direction = BusRoute.Directions.ASC
-        elif direction == 'D':
+        elif direction == "D":
             direction = BusRoute.Directions.DESC
-        elif direction == 'C':
+        elif direction == "C":
             direction = BusRoute.Directions.CIRC
         else:
             direction = BusRoute.Directions.UNDEFINED
 
-        routes_dict[route_id, direction, route_variant].append(int(row[RawColumnNames.stop_id]))
+        routes_dict[route_id, direction, route_variant].append(
+            int(row[RawColumnNames.stop_id])
+        )
 
     routes = []
 
@@ -94,24 +98,29 @@ def process_carris_excel(path, output_dir):
 
         routes.append(
             {
-                'route_id': str(route_id),
-                'route_direction': str(direction),
-                'route_variant': int(route_variant),
-                'route_stop_ids': values,
+                "route_id": str(route_id),
+                "route_direction": str(direction),
+                "route_variant": int(route_variant),
+                "route_stop_ids": values,
             }
         )
 
     routes_path = Path(f"{output_dir}/routes.json")
 
     print(f"Writing {len(routes)} processed routes to {routes_path.resolve()}")
-    with open(routes_path, 'w') as fp:
+    with open(routes_path, "w") as fp:
         json.dump(routes, fp, default=lambda x: x.to_dict())
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process CARRIS excel")
     parser.add_argument("path", type=str, nargs=1, help="excel path")
-    parser.add_argument("-o", "--output", help="output directory", default=config.PROCESSED_DATA_PATH)
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="output directory",
+        default=config.PROCESSED_DATA_PATH,
+    )
 
     args = parser.parse_args()
     input_path = args.path[0]

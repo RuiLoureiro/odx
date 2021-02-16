@@ -48,21 +48,18 @@ class StopsDistance:
     def __init__(self, stops: list):
         _stops_distance = {}
 
-        points_array = np.array(
-            [
-                [s.stop_lat, s.stop_lon] for s in stops
-            ]
-        )
+        points_array = np.array([[s.stop_lat, s.stop_lon] for s in stops])
         dists = _broadcasting_based_haversine(points_array, points_array)
 
         for from_idx, from_stop in enumerate(stops):
             _stops_distance[from_stop.stop_id] = {}
 
             for to_idx, to_stop in enumerate(stops):
-                _stops_distance[from_stop.stop_id][to_stop.stop_id] = dists[from_idx][to_idx]
+                _stops_distance[from_stop.stop_id][to_stop.stop_id] = dists[
+                    from_idx
+                ][to_idx]
 
         self._stops_distance = _stops_distance
 
     def get_distance(self, sid1, sid2):
         return self._stops_distance[sid1][sid2]
-

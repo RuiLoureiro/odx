@@ -1,9 +1,7 @@
 import json
 from collections import namedtuple
 from loguru import logger
-# from .stops_distance import get_stops_distance, compute_stop_distances
 from .utils import Singleton
-# from . import config
 from .common import Stop
 from .geo import StopsDistance
 from . import config
@@ -22,7 +20,7 @@ class BusRoute:
         ASC = "ASC"
         DESC = "DESC"
         CIRC = "CIRC"
-        UNDEFINED = ''
+        UNDEFINED = ""
 
     def __init__(
         self, route_id, route_direction, route_variant, route_stop_ids=None
@@ -269,16 +267,21 @@ class BusSchedule(metaclass=Singleton):
                 try:
                     stage_time = stage_times_gtfs[str(from_sid)][str(to_sid)]
                 except KeyError:
-                    stage_time = 30 #stage_times_osrm[str(from_sid)][str(to_sid)]
+                    stage_time = (
+                        30  # stage_times_osrm[str(from_sid)][str(to_sid)]
+                    )
 
-                route_dist_acc += self.stop_distances.get_distance(from_sid, to_sid)
+                route_dist_acc += self.get_distance(from_sid, to_sid)
                 route_dists.append(route_dist_acc)
 
                 if stage_time:
-                    stage_time_acc += (stage_time + config.BUS_STOP_TIME)
+                    stage_time_acc += stage_time + config.BUS_STOP_TIME
                 route_stage_times.append(stage_time_acc)
             r.set_stage_times(route_stage_times)
             r.set_stage_dists(route_dists)
+
+    def get_distance(self, sid1, sid2):
+        return self.stop_distances.get_distance(sid1, sid2)
 
     def get_route_by_id(self, rid):
         # ATTENTION: very slow!! to be used for debugging purposes!

@@ -5,12 +5,9 @@ from pathlib import Path
 
 
 class RawGTFSReaderMeta(type):
-
     @functools.lru_cache(maxsize=10, typed=False)
     def __call__(cls, *args, **kwargs):
-        return super(RawGTFSReaderMeta, cls).__call__(
-            *args, **kwargs
-        )
+        return super(RawGTFSReaderMeta, cls).__call__(*args, **kwargs)
 
 
 class RawGTFSReader(metaclass=RawGTFSReaderMeta):

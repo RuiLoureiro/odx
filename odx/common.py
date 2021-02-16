@@ -1,5 +1,3 @@
-
-
 class Stop(object):
     def __init__(self, stop_id, stop_name, stop_lat, stop_lon):
         self.stop_id = stop_id

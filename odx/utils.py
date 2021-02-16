@@ -19,3 +19,9 @@ class Singleton(type):
             )
         return cls._instances[cls]
 
+
+def ddict2dict(d):
+    for k, v in d.items():
+        if isinstance(v, dict):
+            d[k] = ddict2dict(v)
+    return dict(d)

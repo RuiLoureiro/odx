@@ -31,12 +31,12 @@ class MetroRoute:
         dists = self.stage_dists
         if exit_idx > entry_idx:
             if exit_idx > 0:
-                dist = dists[exit_idx-1]
+                dist = dists[exit_idx - 1]
             else:
                 raise RuntimeError
 
             if entry_idx > 0:
-                dist -= dists[entry_idx-1]
+                dist -= dists[entry_idx - 1]
             return dist
         else:
             return self._get_dist(exit_idx, entry_idx)
@@ -61,7 +61,7 @@ class MetroSchedule(metaclass=Singleton):
                 int(r.stop_id[1:]),  # remove the M
                 r.stop_name,
                 r.stop_lat,
-                r.stop_lon
+                r.stop_lon,
             )
             for r in reader.stops.itertuples()
         ]
@@ -75,10 +75,18 @@ class MetroSchedule(metaclass=Singleton):
         line_stops = {}
         self._name_to_route_idx = {}
         for route_id in reader.routes.route_id.unique():
-            route_name = reader.routes[reader.routes.route_id == route_id].route_long_name.iloc[0]
-            trip_id = reader.trips[reader.trips.route_id == route_id].trip_id.iloc[-1]
-            stop_sequence = reader.stop_times[reader.stop_times.trip_id == trip_id].sort_values(by="stop_sequence")['stop_id'].tolist()
-            line = route_name.split(' - ')[0].lower()
+            route_name = reader.routes[
+                reader.routes.route_id == route_id
+            ].route_long_name.iloc[0]
+            trip_id = reader.trips[
+                reader.trips.route_id == route_id
+            ].trip_id.iloc[-1]
+            stop_sequence = (
+                reader.stop_times[reader.stop_times.trip_id == trip_id]
+                .sort_values(by="stop_sequence")["stop_id"]
+                .tolist()
+            )
+            line = route_name.split(" - ")[0].lower()
 
             # need this ugly 'if' because the gtfs is bad. amarela->odivelas is repeated..
             # one of them ends in campo grande
@@ -86,7 +94,9 @@ class MetroSchedule(metaclass=Singleton):
             if line not in line_stops:
                 line_stops[line] = [int(s[1:]) for s in stop_sequence]
             else:
-                if len([int(s[1:]) for s in stop_sequence]) > len(line_stops[line]):
+                if len([int(s[1:]) for s in stop_sequence]) > len(
+                    line_stops[line]
+                ):
                     line_stops[line] = [int(s[1:]) for s in stop_sequence]
         for idx, (line_name, stops) in enumerate(line_stops.items()):
             ml = MetroRoute(line_name, stops)
@@ -102,7 +112,9 @@ class MetroSchedule(metaclass=Singleton):
                 except IndexError:
                     break
 
-                route_dist_acc += self.stops_distance.get_distance(from_sid, to_sid)
+                route_dist_acc += self.stops_distance.get_distance(
+                    from_sid, to_sid
+                )
                 route_dists.append(route_dist_acc)
             ml.set_stage_dists(route_dists)
 

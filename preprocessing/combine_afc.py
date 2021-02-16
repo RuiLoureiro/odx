@@ -21,13 +21,22 @@ def filter_df(
 ):
     if start_date and end_date:
         if start_time and end_time:
-            df = df[(df.timestamp >= datetime.datetime.combine(start_date, start_time)) & (df.timestamp <= datetime.datetime.combine(end_date, end_time))]
+            df = df[
+                (
+                    df.timestamp
+                    >= datetime.datetime.combine(start_date, start_time)
+                )
+                & (
+                    df.timestamp
+                    <= datetime.datetime.combine(end_date, end_time)
+                )
+            ]
         else:
             df = df[
                 (df.timestamp.dt.date >= start_date)
                 & (df.timestamp.dt.date <= end_date)
             ]
-    df = df.reset_index().drop('index', axis=1)
+    df = df.reset_index().drop("index", axis=1)
     return df
 
 
@@ -70,16 +79,48 @@ def get_combined_afc(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process CARRIS AFC")
 
-    parser.add_argument('-sd', "--start-date", type=str, help="Start date in 'd-m-Y' format", required=False)
-    parser.add_argument('-ed', "--end-date", type=str, help="Start date in 'd-m-Y' format", required=False)
-    parser.add_argument('-st', "--start-time", type=str, help="Start time in 'H:M:S' format", required=False)
-    parser.add_argument('-et', "--end-time", type=str, help="End time in 'H:M:S' format", required=False)
+    parser.add_argument(
+        "-sd",
+        "--start-date",
+        type=str,
+        help="Start date in 'd-m-Y' format",
+        required=False,
+    )
+    parser.add_argument(
+        "-ed",
+        "--end-date",
+        type=str,
+        help="Start date in 'd-m-Y' format",
+        required=False,
+    )
+    parser.add_argument(
+        "-st",
+        "--start-time",
+        type=str,
+        help="Start time in 'H:M:S' format",
+        required=False,
+    )
+    parser.add_argument(
+        "-et",
+        "--end-time",
+        type=str,
+        help="End time in 'H:M:S' format",
+        required=False,
+    )
     parser.add_argument("-o", "--output", help="output path", default=None)
 
     args = parser.parse_args()
 
-    date_parser = lambda s: None if s is None else datetime.date(*[int(s) for s in s.split('-')][::-1])
-    time_parser = lambda s: None if s is None else datetime.time(*[int(s) for s in s.split(':')])
+    date_parser = (
+        lambda s: None
+        if s is None
+        else datetime.date(*[int(s) for s in s.split("-")][::-1])
+    )
+    time_parser = (
+        lambda s: None
+        if s is None
+        else datetime.time(*[int(s) for s in s.split(":")])
+    )
 
     start_date = date_parser(args.start_date)
     end_date = date_parser(args.end_date)
@@ -91,5 +132,5 @@ if __name__ == "__main__":
         end_date=end_date,
         start_time=start_time,
         end_time=end_time,
-        output_path=args.output
+        output_path=args.output,
     )
